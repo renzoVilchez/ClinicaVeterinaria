@@ -1,0 +1,192 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<h2>Usuarios</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo usuario</button>
+
+<table class="table table-striped" id="tblUsuarios">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="usuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="IdUsuario" />
+
+                <div class="mb-3">
+                    <label>Nombre de usuario</label>
+                    <input id="NombreUsuario" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Contraseña</label>
+                    <input id="Contrasena" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Rol</label>
+                    <select id="Rol" class="form-control">
+                        <option>Cliente</option>
+                        <option>Veterinario</option>
+                        <option>Administrador</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" id="Estado" class="form-check-input" />
+                    <label class="form-check-label">Activo</label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('usuarioModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR USUARIOS
+            // ===========================
+            function fetchList() {
+                fetch('/Usuario/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+                        const tbody = document.querySelector('#tblUsuarios tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(u => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${u.idUsuario}</td>
+                                    <td>${u.nombreUsuario}</td>
+                                    <td>${u.rol}</td>
+                                    <td>${u.estado ? 'Activo' : 'Inactivo'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${u.idUsuario}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${u.idUsuario}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BIND BOTONES EDITAR / ELIMINAR
+            // ===========================
+            function bindButtons() {
+
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/Usuario/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const u = await res.json();
+
+                            document.getElementById('IdUsuario').value = u.idUsuario;
+                            document.getElementById('NombreUsuario').value = u.nombreUsuario;
+                            document.getElementById('Contrasena').value = u.contrasena;
+                            document.getElementById('Rol').value = u.rol;
+                            document.getElementById('Estado').checked = u.estado;
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('Eliminar usuario?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/Usuario/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVO USUARIO
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+                document.getElementById('IdUsuario').value = 0;
+                document.getElementById('NombreUsuario').value = '';
+                document.getElementById('Contrasena').value = '';
+                document.getElementById('Rol').value = 'Cliente';
+                document.getElementById('Estado').checked = true;
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const usuario = {
+                    IdUsuario: parseInt(document.getElementById('IdUsuario').value || 0),
+                    NombreUsuario: document.getElementById('NombreUsuario').value,
+                    Contrasena: document.getElementById('Contrasena').value,
+                    Rol: document.getElementById('Rol').value,
+                    Estado: document.getElementById('Estado').checked
+                };
+
+                const res = await fetch('/Usuario/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(usuario)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                } else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+        });
+    </script>
+}

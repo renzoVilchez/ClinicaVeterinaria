@@ -1,8 +1,52 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <link rel="stylesheet"
+              href="~/css/style.css"
+              asp-append-version="true" />
+        <h1>Los mejores especialistas veterinarios en un solo lugar</h1>
+        <p>
+            En <strong>ANIMORA</strong> cuidamos de la salud y bienestar de tus mascotas con un equipo de expertos dedicados,
+            tecnología avanzada y atención personalizada para cada necesidad.
+        </p>
+        <a asp-controller="Home" asp-action="Nosotros" class="btn-white">Conoce más</a>
+    </div>
+</section>
+
+<!-- SERVICIOS DESTACADOS -->
+<section class="destacados">
+    <h2>Servicios destacados</h2>
+
+    <div class="servicios-grid">
+
+        <div class="servicio">
+            <img src="~/img/consulta-veterinaria.jpg" alt="Consulta veterinaria">
+            <h3>Consultas generales</h3>
+            <p>
+                Revisión completa del estado de salud de tu mascota, diagnóstico temprano y recomendaciones personalizadas.
+            </p>
+        </div>
+
+        <div class="servicio">
+            <img src="~/img/cirugia-veterinaria.jpg" alt="Cirugía veterinaria">
+            <h3>Cirugías especializadas</h3>
+            <p>
+                Equipo quirúrgico de última tecnología y profesionales con amplia experiencia en procedimientos veterinarios.
+            </p>
+        </div>
+
+        <div class="servicio">
+            <img src="~/img/cuidado-animal.png" alt="Cuidado animal">
+            <h3>Vacunación y prevención</h3>
+            <p>
+                Planes de vacunación y control sanitario para mantener a tu mascota protegida durante todo el año.
+            </p>
+        </div>
+
+    </div>
+</section>
+

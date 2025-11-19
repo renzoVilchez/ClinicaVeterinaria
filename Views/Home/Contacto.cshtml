@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Contáctanos";
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('contactForm');
+            const successEl = document.getElementById('form-success');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                document.querySelectorAll('.error').forEach(el => el.textContent = '');
+
+                const name = form.name.value.trim();
+                const phone = form.phone.value.trim();
+                const email = form.email.value.trim();
+                const subject = form.subject.value.trim();
+                const message = form.message.value.trim();
+
+                let valid = true;
+
+                if (name.length < 2) {
+                    document.getElementById('err-name').textContent = 'Ingresa tu nombre.';
+                    valid = false;
+                }
+                if (phone.length < 6) {
+                    document.getElementById('err-phone').textContent = 'Ingresa un teléfono válido.';
+                    valid = false;
+                }
+                if (!/^\S+@@\S+\.\S+$/.test(email)) {
+                    document.getElementById('err-email').textContent = 'Ingresa un correo válido.';
+                    valid = false;
+                }
+                if (subject.length < 3) {
+                    document.getElementById('err-subject').textContent = 'Agrega un asunto breve.';
+                    valid = false;
+                }
+                if (message.length < 10) {
+                    document.getElementById('err-message').textContent = 'El mensaje es muy corto.';
+                    valid = false;
+                }
+
+                if (!valid) {
+                    successEl.textContent = '';
+                    return;
+                }
+
+                successEl.textContent = 'Mensaje enviado. Gracias — nos pondremos en contacto pronto.';
+                form.reset();
+            });
+        });
+    </script>
+}
+
+<div class="contacto-section">
+
+    <h2 class="contacto-title">Contáctanos</h2>
+    <p class="contacto-subtitle">Estamos listos para ayudarte y atender a tu mascota</p>
+
+    <!-- FORMULARIO -->
+    <form id="contactForm" class="contacto-form" novalidate>
+        <h3>Envíanos un mensaje</h3>
+
+        <div class="form-row">
+            <label for="name">Nombre</label>
+            <input type="text" id="name" name="name" placeholder="Tu nombre" required>
+            <span class="error" id="err-name"></span>
+        </div>
+
+        <div class="form-row">
+            <label for="phone">Teléfono</label>
+            <input type="tel" id="phone" name="phone" placeholder="999 999 999" required>
+            <span class="error" id="err-phone"></span>
+        </div>
+
+        <div class="form-row">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="tu@correo.com" required>
+            <span class="error" id="err-email"></span>
+        </div>
+
+        <div class="form-row">
+            <label for="subject">Asunto</label>
+            <input type="text" id="subject" name="subject" placeholder="Motivo del contacto" required>
+            <span class="error" id="err-subject"></span>
+        </div>
+
+        <div class="form-row">
+            <label for="message">Mensaje</label>
+            <textarea id="message" name="message" placeholder="Escribe tu mensaje..." required></textarea>
+            <span class="error" id="err-message"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Enviar mensaje</button>
+            <button type="reset" class="btn-secondary">Limpiar</button>
+        </div>
+
+        <p id="form-success" class="form-success"></p>
+    </form>
+
+    <br><br><br>
+
+    <div class="contacto-grid">
+        <div class="contacto-card">
+            <i class="fas fa-phone-alt"></i>
+            <h3>Central Telefónica</h3>
+            <p>01 748 8000</p>
+        </div>
+
+        <div class="contacto-card">
+            <i class="fab fa-whatsapp"></i>
+            <h3>Whatsapp</h3>
+            <p>+51 959 - 060 - 6025</p>
+        </div>
+
+        <div class="contacto-card">
+            <i class="fas fa-envelope"></i>
+            <h3>Email</h3>
+            <p>admision@vetivet.com</p>
+        </div>
+
+        <div class="contacto-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3>Dirección</h3>
+            <p> Av. España 123, Ciudad Trujillo - Perú.</p>
+        </div>
+    </div>
+
+</div>

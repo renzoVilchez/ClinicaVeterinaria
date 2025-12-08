@@ -154,6 +154,16 @@ CREATE TABLE Tickets (
 );
 GO
 
+-- ==========================================
+-- 10. TABLA CHATBOT (preguntas frecuentes)
+-- ==========================================
+CREATE TABLE ChatBot (
+    idPregunta INT IDENTITY(1,1) PRIMARY KEY,
+    pregunta NVARCHAR(200) NOT NULL,
+    respuesta NVARCHAR(500) NOT NULL
+);
+GO
+
 -- ============================
 -- TRIGGER
 -- ============================

@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicaVeterinaria.Controllers
 {
-    public class EspecieController : Controller
+    public class TicketController : Controller
     {
-        private readonly EspecieRepository _repo;
+        private readonly TicketRepository _repo;
 
-        public EspecieController(EspecieRepository repo)
+        public TicketController(TicketRepository repo)
         {
             _repo = repo;
         }
@@ -38,18 +38,18 @@ namespace ClinicaVeterinaria.Controllers
 
         // Guardar (Insertar o Actualizar) - recibe JSON
         [HttpPost]
-        public IActionResult Guardar([FromBody] Especie Especie)
+        public IActionResult Guardar([FromBody] Ticket Ticket)
         {
-            if (Especie == null) return BadRequest();
+            if (Ticket == null) return BadRequest();
 
-            if (Especie.IdEspecie == 0)
+            if (Ticket.IdTicket == 0)
             {
-                var newId = _repo.Insertar(Especie);
+                var newId = _repo.Insertar(Ticket);
                 return Ok(new { success = true, id = newId });
             }
             else
             {
-                var rows = _repo.Actualizar(Especie);
+                var rows = _repo.Actualizar(Ticket);
                 return Ok(new { success = rows > 0, rowsAffected = rows });
             }
         }

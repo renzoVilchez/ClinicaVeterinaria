@@ -1,0 +1,189 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Veterinarios</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo veterinario</button>
+
+<table class="table table-striped" id="tblVeterinarios">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>ID Usuario</th>
+            <th>Especialidad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="veterinarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Veterinario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdVeterinario" />
+
+                <div class="mb-3">
+                    <label>ID Usuario</label>
+                    <input id="IdUsuario" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Especialidad</label>
+                    <input id="Especialidad" class="form-control" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" id="Estado" class="form-check-input" />
+                    <label class="form-check-label">Activo</label>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('veterinarioModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR
+            // ===========================
+            function fetchList() {
+                fetch('/Veterinario/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+
+                        const tbody = document.querySelector('#tblVeterinarios tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(v => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${v.idVeterinario}</td>
+                                    <td>${v.idUsuario}</td>
+                                    <td>${v.especialidad || ''}</td>
+                                    <td>${v.estado ? 'Activo' : 'Inactivo'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${v.idVeterinario}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${v.idVeterinario}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BIND BOTONES
+            // ===========================
+            function bindButtons() {
+
+                // EDITAR
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/Veterinario/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const v = await res.json();
+
+                            document.getElementById('IdVeterinario').value = v.idVeterinario;
+                            document.getElementById('IdUsuario').value = v.idUsuario;
+                            document.getElementById('Especialidad').value = v.especialidad || '';
+                            document.getElementById('Estado').checked = v.estado;
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                // ELIMINAR
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('¿Eliminar veterinario?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/Veterinario/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVO
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+
+                document.getElementById('IdVeterinario').value = 0;
+                document.getElementById('IdUsuario').value = '';
+                document.getElementById('Especialidad').value = '';
+                document.getElementById('Estado').checked = true;
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const veterinario = {
+                    IdVeterinario: parseInt(document.getElementById('IdVeterinario').value || 0),
+                    IdUsuario: parseInt(document.getElementById('IdUsuario').value || 0),
+                    Especialidad: document.getElementById('Especialidad').value,
+                    Estado: document.getElementById('Estado').checked
+                };
+
+                const res = await fetch('/Veterinario/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(veterinario)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                } else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+        });
+    </script>
+}

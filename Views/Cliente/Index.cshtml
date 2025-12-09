@@ -1,0 +1,254 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Clientes</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo cliente</button>
+
+<table class="table table-striped" id="tblClientes">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>ID Usuario</th>
+            <th>Nombres</th>
+            <th>Apellido Paterno</th>
+            <th>Apellido Materno</th>
+            <th>Tipo Doc</th>
+            <th>N° Documento</th>
+            <th>Celular</th>
+            <th>Dirección</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdCliente" />
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>ID Usuario</label>
+                        <input id="IdUsuario" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Nombres</label>
+                        <input id="Nombres" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Apellido Paterno</label>
+                        <input id="ApellidoPaterno" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Apellido Materno</label>
+                        <input id="ApellidoMaterno" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Tipo de Documento</label>
+                        <select id="TipoDocumento" class="form-control">
+                            <option value="DNI">DNI</option>
+                            <option value="Carnet de Extranjería">Carnet de Extranjería</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Número de Documento</label>
+                        <input id="NumeroDocumento" class="form-control" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label>Celular</label>
+                        <input id="Celular" class="form-control" />
+                    </div>
+
+                    <div class="col-md-8 mb-3">
+                        <label>Dirección</label>
+                        <input id="Direccion" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12 mb-3 form-check">
+                        <input type="checkbox" id="Estado" class="form-check-input" />
+                        <label class="form-check-label">Activo</label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('clienteModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR CLIENTES
+            // ===========================
+            function fetchList() {
+                fetch('/Cliente/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+                        const tbody = document.querySelector('#tblClientes tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(c => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${c.idCliente}</td>
+                                    <td>${c.idUsuario}</td>
+                                    <td>${c.nombres}</td>
+                                    <td>${c.apellidoPaterno}</td>
+                                    <td>${c.apellidoMaterno}</td>
+                                    <td>${c.tipoDocumento}</td>
+                                    <td>${c.numeroDocumento}</td>
+                                    <td>${c.celular}</td>
+                                    <td>${c.direccion}</td>
+                                    <td>${c.estado ? 'Activo' : 'Inactivo'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCliente}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCliente}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BOTONES EDITAR / ELIMINAR
+            // ===========================
+            function bindButtons() {
+
+                // EDITAR
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/Cliente/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const c = await res.json();
+
+                            document.getElementById('IdCliente').value = c.idCliente;
+                            document.getElementById('IdUsuario').value = c.idUsuario;
+                            document.getElementById('Nombres').value = c.nombres;
+                            document.getElementById('ApellidoPaterno').value = c.apellidoPaterno;
+                            document.getElementById('ApellidoMaterno').value = c.apellidoMaterno;
+                            document.getElementById('TipoDocumento').value = c.tipoDocumento;
+                            document.getElementById('NumeroDocumento').value = c.numeroDocumento;
+                            document.getElementById('Celular').value = c.celular;
+                            document.getElementById('Direccion').value = c.direccion;
+                            document.getElementById('Estado').checked = c.estado;
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                // ELIMINAR
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('¿Eliminar cliente?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/Cliente/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVO CLIENTE
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+
+                document.getElementById('IdCliente').value = 0;
+                document.getElementById('IdUsuario').value = '';
+                document.getElementById('Nombres').value = '';
+                document.getElementById('ApellidoPaterno').value = '';
+                document.getElementById('ApellidoMaterno').value = '';
+                document.getElementById('TipoDocumento').value = 'DNI';
+                document.getElementById('NumeroDocumento').value = '';
+                document.getElementById('Celular').value = '';
+                document.getElementById('Direccion').value = '';
+                document.getElementById('Estado').checked = true;
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const cliente = {
+                    IdCliente: parseInt(document.getElementById('IdCliente').value || 0),
+                    IdUsuario: parseInt(document.getElementById('IdUsuario').value || 0),
+                    Nombres: document.getElementById('Nombres').value,
+                    ApellidoPaterno: document.getElementById('ApellidoPaterno').value,
+                    ApellidoMaterno: document.getElementById('ApellidoMaterno').value,
+                    TipoDocumento: document.getElementById('TipoDocumento').value,
+                    NumeroDocumento: document.getElementById('NumeroDocumento').value,
+                    Celular: document.getElementById('Celular').value,
+                    Direccion: document.getElementById('Direccion').value,
+                    Estado: document.getElementById('Estado').checked
+                };
+
+                const res = await fetch('/Cliente/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cliente)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                }
+                else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+        });
+    </script>
+}

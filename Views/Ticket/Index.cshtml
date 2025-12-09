@@ -1,0 +1,238 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Tickets</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo Ticket</button>
+
+<table class="table table-striped" id="tblTickets">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>ID Cita</th>
+            <th>Código</th>
+            <th>Fecha Emisión</th>
+            <th>Monto Total</th>
+            <th>Método Pago</th>
+            <th>Estado</th>
+            <th>Fecha Pago</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Ticket</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdTicket" />
+
+                <div class="mb-3">
+                    <label>ID Cita</label>
+                    <input id="IdCita" class="form-control" type="number" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Código Ticket</label>
+                    <input id="CodigoTicket" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Fecha Emisión</label>
+                    <input id="FechaEmision" class="form-control" type="datetime-local" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Monto Total</label>
+                    <input id="MontoTotal" class="form-control" type="number" step="0.01" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Método Pago</label>
+                    <input id="MetodoPago" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Estado</label>
+                    <input id="Estado" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Fecha Pago</label>
+                    <input id="FechaPago" class="form-control" type="datetime-local" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Observaciones</label>
+                    <textarea id="Observaciones" class="form-control"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('ticketModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR
+            // ===========================
+            function fetchList() {
+                fetch('/Ticket/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+
+                        const tbody = document.querySelector('#tblTickets tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(t => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${t.idTicket}</td>
+                                    <td>${t.idCita}</td>
+                                    <td>${t.codigoTicket || ''}</td>
+                                    <td>${t.fechaEmision ? t.fechaEmision.substring(0,16).replace('T',' ') : ''}</td>
+                                    <td>S/ ${t.montoTotal.toFixed(2)}</td>
+                                    <td>${t.metodoPago || ''}</td>
+                                    <td>${t.estado || ''}</td>
+                                    <td>${t.fechaPago ? t.fechaPago.substring(0,16).replace('T',' ') : ''}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${t.idTicket}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${t.idTicket}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BIND BOTONES
+            // ===========================
+            function bindButtons() {
+
+                // EDITAR
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/Ticket/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const t = await res.json();
+
+                            document.getElementById('IdTicket').value = t.idTicket;
+                            document.getElementById('IdCita').value = t.idCita;
+                            document.getElementById('CodigoTicket').value = t.codigoTicket || '';
+                            document.getElementById('FechaEmision').value = t.fechaEmision ? t.fechaEmision.substring(0,16) : '';
+                            document.getElementById('MontoTotal').value = t.montoTotal;
+                            document.getElementById('MetodoPago').value = t.metodoPago || '';
+                            document.getElementById('Estado').value = t.estado || '';
+                            document.getElementById('FechaPago').value = t.fechaPago ? t.fechaPago.substring(0,16) : '';
+                            document.getElementById('Observaciones').value = t.observaciones || '';
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                // ELIMINAR
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('¿Eliminar ticket?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/Ticket/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVO
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+
+                document.getElementById('IdTicket').value = 0;
+                document.getElementById('IdCita').value = '';
+                document.getElementById('CodigoTicket').value = '';
+                document.getElementById('FechaEmision').value = '';
+                document.getElementById('MontoTotal').value = '';
+                document.getElementById('MetodoPago').value = '';
+                document.getElementById('Estado').value = '';
+                document.getElementById('FechaPago').value = '';
+                document.getElementById('Observaciones').value = '';
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const ticket = {
+                    IdTicket: parseInt(document.getElementById('IdTicket').value || 0),
+                    IdCita: parseInt(document.getElementById('IdCita').value || 0),
+                    CodigoTicket: document.getElementById('CodigoTicket').value,
+                    FechaEmision: document.getElementById('FechaEmision').value,
+                    MontoTotal: parseFloat(document.getElementById('MontoTotal').value),
+                    MetodoPago: document.getElementById('MetodoPago').value,
+                    Estado: document.getElementById('Estado').value,
+                    FechaPago: document.getElementById('FechaPago').value || null,
+                    Observaciones: document.getElementById('Observaciones').value
+                };
+
+                const res = await fetch('/Ticket/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticket)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                } else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+
+        });
+    </script>
+}

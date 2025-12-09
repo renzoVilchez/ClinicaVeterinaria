@@ -1,0 +1,167 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Especies</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nueva especie</button>
+
+<table class="table table-striped" id="tblEspecies">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre de especie</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="especieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Especie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdEspecie" />
+
+                <div class="mb-3">
+                    <label>Nombre de la especie</label>
+                    <input id="NombreEspecie" class="form-control" />
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('especieModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR ESPECIES
+            // ===========================
+            function fetchList() {
+                fetch('/Especie/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+                        const tbody = document.querySelector('#tblEspecies tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(e => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${e.idEspecie}</td>
+                                    <td>${e.nombreEspecie}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${e.idEspecie}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${e.idEspecie}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BOTONES EDITAR / ELIMINAR
+            // ===========================
+            function bindButtons() {
+
+                // EDITAR
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/Especie/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const esp = await res.json();
+
+                            document.getElementById('IdEspecie').value = esp.idEspecie;
+                            document.getElementById('NombreEspecie').value = esp.nombreEspecie;
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                // ELIMINAR
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('¿Eliminar especie?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/Especie/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVA ESPECIE
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+                document.getElementById('IdEspecie').value = 0;
+                document.getElementById('NombreEspecie').value = '';
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const especie = {
+                    IdEspecie: parseInt(document.getElementById('IdEspecie').value || 0),
+                    NombreEspecie: document.getElementById('NombreEspecie').value
+                };
+
+                const res = await fetch('/Especie/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(especie)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                } else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+        });
+    </script>
+}

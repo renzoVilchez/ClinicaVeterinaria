@@ -1,0 +1,209 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>Horarios de Veterinarios</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo horario</button>
+
+<table class="table table-striped" id="tblHorarios">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>ID Veterinario</th>
+            <th>Día Semana</th>
+            <th>Hora Inicio</th>
+            <th>Hora Fin</th>
+            <th>Disponible</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="horarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Horario de Veterinario</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdHorario" />
+
+                <div class="mb-3">
+                    <label>ID Veterinario</label>
+                    <input id="IdVeterinario" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Día Semana</label>
+                    <input id="DiaSemana" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Hora Inicio</label>
+                    <input id="HoraInicio" type="number" min="0" max="23" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Hora Fin</label>
+                    <input id="HoraFin" type="number" min="0" max="23" class="form-control" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" id="Disponible" class="form-check-input" />
+                    <label class="form-check-label">Disponible</label>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('horarioModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // ===========================
+            // LISTAR
+            // ===========================
+            function fetchList() {
+                fetch('/HorariosVeterinario/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+
+                        const tbody = document.querySelector('#tblHorarios tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(h => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${h.idHorario}</td>
+                                    <td>${h.idVeterinario}</td>
+                                    <td>${h.diaSemana || ''}</td>
+                                    <td>${h.horaInicio}</td>
+                                    <td>${h.horaFin}</td>
+                                    <td>${h.disponible ? 'Sí' : 'No'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${h.idHorario}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${h.idHorario}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            // ===========================
+            // BIND BOTONES
+            // ===========================
+            function bindButtons() {
+
+                // EDITAR
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        const id = e.target.dataset.id;
+                        const res = await fetch(`/HorariosVeterinario/Obtener?id=${id}`);
+
+                        if (res.ok) {
+                            const h = await res.json();
+
+                            document.getElementById('IdHorario').value = h.idHorario;
+                            document.getElementById('IdVeterinario').value = h.idVeterinario;
+                            document.getElementById('DiaSemana').value = h.diaSemana || '';
+                            document.getElementById('HoraInicio').value = h.horaInicio;
+                            document.getElementById('HoraFin').value = h.horaFin;
+                            document.getElementById('Disponible').checked = h.disponible;
+
+                            bsModal.show();
+                        }
+                    });
+                });
+
+                // ELIMINAR
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+
+                        if (!confirm('¿Eliminar horario?')) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/HorariosVeterinario/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                        else alert("No se pudo eliminar");
+                    });
+                });
+            }
+
+            // ===========================
+            // NUEVO
+            // ===========================
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+
+                document.getElementById('IdHorario').value = 0;
+                document.getElementById('IdVeterinario').value = '';
+                document.getElementById('DiaSemana').value = '';
+                document.getElementById('HoraInicio').value = '';
+                document.getElementById('HoraFin').value = '';
+                document.getElementById('Disponible').checked = true;
+
+                bsModal.show();
+            });
+
+            // ===========================
+            // GUARDAR
+            // ===========================
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const horario = {
+                    IdHorario: parseInt(document.getElementById('IdHorario').value || 0),
+                    IdVeterinario: parseInt(document.getElementById('IdVeterinario').value || 0),
+                    DiaSemana: document.getElementById('DiaSemana').value,
+                    HoraInicio: parseInt(document.getElementById('HoraInicio').value || 0),
+                    HoraFin: parseInt(document.getElementById('HoraFin').value || 0),
+                    Disponible: document.getElementById('Disponible').checked
+                };
+
+                const res = await fetch('/HorariosVeterinario/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(horario)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                } else {
+                    alert("Error al guardar");
+                }
+            });
+
+            // CARGA INICIAL
+            fetchList();
+        });
+    </script>
+}

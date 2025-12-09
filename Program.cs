@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<SqlConnectionFactory>();
 builder.Services.AddScoped<UsuarioRepository>();
+builder.Services.AddScoped<ServicioRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSession();
 var app = builder.Build();

@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace ClinicaVeterinaria.Data
 {
@@ -6,9 +7,9 @@ namespace ClinicaVeterinaria.Data
     {
         private readonly string _connectionString;
 
-        public SqlConnectionFactory(IConfiguration config)
+        public SqlConnectionFactory(IConfiguration configuration)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         public SqlConnection CreateConnection()

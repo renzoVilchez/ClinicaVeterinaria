@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using ClinicaVeterinaria.Models;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace ClinicaVeterinaria.Data
 {

@@ -1,0 +1,156 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+
+<h2>ChatBot – Respuestas</h2>
+
+<button id="btnNuevo" class="btn btn-primary mb-2">Nueva Respuesta</button>
+
+<table class="table table-striped" id="tblChatBot">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Pregunta</th>
+            <th>Respuesta</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">ChatBot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="IdPregunta" />
+
+                <div class="mb-3">
+                    <label>Pregunta</label>
+                    <input type="text" id="Pregunta" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Respuesta</label>
+                    <textarea id="Respuesta" class="form-control"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnGuardar" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const modalEl = document.getElementById('chatModal');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            function fetchList() {
+                fetch('/ChatBot/Listar')
+                    .then(r => r.json())
+                    .then(data => {
+                        const tbody = document.querySelector('#tblChatBot tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach(c => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${c.idPregunta}</td>
+                                    <td>${c.pregunta}</td>
+                                    <td>${c.respuesta}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idPregunta}">Editar</button>
+                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idPregunta}">Eliminar</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        bindButtons();
+                    });
+            }
+
+            function bindButtons() {
+
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.target.dataset.id;
+
+                        const res = await fetch(`/ChatBot/Obtener?id=${id}`);
+                        if (!res.ok) return;
+
+                        const c = await res.json();
+                        document.getElementById('IdPregunta').value = c.idPregunta;
+                        document.getElementById('Pregunta').value = c.pregunta;
+                        document.getElementById('Respuesta').value = c.respuesta;
+
+                        bsModal.show();
+                    });
+                });
+
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if (!confirm("¿Eliminar respuesta?")) return;
+
+                        const id = parseInt(e.target.dataset.id);
+
+                        const res = await fetch('/ChatBot/Eliminar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(id)
+                        });
+
+                        const json = await res.json();
+                        if (json.success) fetchList();
+                    });
+                });
+            }
+
+            document.getElementById('btnNuevo').addEventListener('click', () => {
+                document.getElementById('IdPregunta').value = 0;
+                document.getElementById('Pregunta').value = '';
+                document.getElementById('Respuesta').value = '';
+
+                bsModal.show();
+            });
+
+            document.getElementById('btnGuardar').addEventListener('click', async () => {
+
+                const data = {
+                    IdPregunta: parseInt(document.getElementById('IdPregunta').value || 0),
+                    Pregunta: document.getElementById('Pregunta').value,
+                    Respuesta: document.getElementById('Respuesta').value
+                };
+
+                const res = await fetch('/ChatBot/Guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const json = await res.json();
+
+                if (json.success) {
+                    bsModal.hide();
+                    fetchList();
+                }
+            });
+
+            fetchList();
+        });
+    </script>
+}

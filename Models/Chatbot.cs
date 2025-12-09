@@ -1,6 +1,6 @@
 ﻿namespace ClinicaVeterinaria.Models
 {
-    public class Chatbot
+    public class ChatBot
     {
         public int IdPregunta { get; set; }
         public string? Pregunta { get; set; }

@@ -60,5 +60,14 @@ namespace ClinicaVeterinaria.Controllers
             var rows = _repo.Eliminar(id);
             return Ok(new { success = rows > 0 });
         }
+
+        [HttpGet]
+        public IActionResult HorariosDisponibles(int idVeterinario, DateTime fecha)
+        {
+            var horarios = _repo.HorariosDisponibles(idVeterinario, fecha);
+            return Json(horarios); // Devuelve lista de horas disponibles ["08:00", "09:00", ...]
+        }
+
+
     }
 }

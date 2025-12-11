@@ -10,6 +10,7 @@
     <thead>
         <tr>
             <th>ID</th>
+            <th>Cliente</th>
             <th>Mascota</th>
             <th>Servicio</th>
             <th>Veterinario</th>
@@ -36,32 +37,40 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label>Mascota</label>
-                        <select id="IdMascota" class="form-select"></select>
+                        <label>Cliente</label>
+                        <select id="IdCliente" class="form-select"></select>
                     </div>
 
                     <div class="col-md-6">
-                        <label>Servicio</label>
-                        <select id="IdServicio" class="form-select"></select>
+                        <label>Mascota</label>
+                        <select id="IdMascota" class="form-select"></select>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
+                        <label>Servicio</label>
+                        <select id="IdServicio" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-6">
                         <label>Veterinario</label>
                         <select id="IdVeterinario" class="form-select"></select>
                     </div>
+                </div>
 
-                    <div class="col-md-3">
+                <div class="row mb-3">
+                    <div class="col-md-6">
                         <label>Fecha</label>
                         <input type="date" id="Fecha" class="form-control" />
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label>Hora</label>
-                        <input type="time" id="Hora" class="form-control" />
+                        <select id="Hora" class="form-select"></select>
                     </div>
                 </div>
+
             </div>
 
             <div class="modal-footer">
@@ -81,80 +90,116 @@
             const bsModal = new bootstrap.Modal(modalEl);
 
             // ===============================
-            //      CARGAR COMBOS
+            // CARGAR COMBOS
             // ===============================
             async function cargarCombos() {
                 try {
-                    const masc = await fetch('/Mascota/Listar').then(r => r.json());
-                    document.getElementById('IdMascota').innerHTML =
-                        masc.map(m => `<option value="${m.idMascota}">${m.nombre}</option>`).join('');
+                    // Clientes
+                    const clientes = await fetch('/Cliente/Listar').then(r => r.json());
+                    document.getElementById('IdCliente').innerHTML =
+                        clientes.map(c => `<option value="${c.idCliente}">${c.nombres} ${c.apellidoPaterno} ${c.apellidoMaterno}</option>`).join('');
 
+                    // Mascotas vacías por defecto
+                    document.getElementById('IdMascota').innerHTML = '';
+
+                    // Servicios
                     const serv = await fetch('/Servicio/Listar').then(r => r.json());
                     document.getElementById('IdServicio').innerHTML =
                         serv.map(s => `<option value="${s.idServicio}">${s.nombreServicio}</option>`).join('');
 
+                    // Veterinarios
                     const vet = await fetch('/Veterinario/Listar').then(r => r.json());
                     document.getElementById('IdVeterinario').innerHTML =
                         vet.map(v => `<option value="${v.idVeterinario}">${v.nombreUsuario}</option>`).join('');
-                } catch(err) {
+
+                } catch (err) {
                     console.error('Error cargando combos:', err);
                 }
             }
 
             // ===============================
-            //      LISTAR CITAS
+            // FILTRAR MASCOTAS POR CLIENTE
             // ===============================
-            async function fetchList() {
-                try {
-                    const res = await fetch('/Cita/Listar');
-                    const data = await res.json();
+            document.getElementById('IdCliente').addEventListener('change', async function() {
+                const idCliente = this.value;
+                if(!idCliente) return;
 
-                    const tbody = document.querySelector('#tblCitas tbody');
-                    tbody.innerHTML = '';
+                const mascotas = await fetch(`/Mascota/ListarPorCliente?idCliente=${idCliente}`).then(r => r.json());
+                document.getElementById('IdMascota').innerHTML =
+                    mascotas.map(m => `<option value="${m.idMascota}">${m.nombre}</option>`).join('');
+            });
 
-                    data.forEach(c => {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${c.idCita}</td>
-                                <td>${c.mascotaNombre}</td>
-                                <td>${c.servicioNombre}</td>
-                                <td>${c.veterinarioNombre}</td>
-                                <td>${c.fechaCita.split("T")[0]}</td>
-                                <td>${c.horaCita}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCita}">Editar</button>
-                                    <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCita}">Eliminar</button>
-                                </td>
-                            </tr>`;
-                    });
+            // ===============================
+            // FILTRAR HORARIOS POR VETERINARIO Y FECHA
+            // ===============================
+            document.getElementById('IdVeterinario').addEventListener('change', cargarHorasDisponibles);
+            document.getElementById('Fecha').addEventListener('change', cargarHorasDisponibles);
 
-                    bindButtons();
+            async function cargarHorasDisponibles() {
+                const idVet = document.getElementById('IdVeterinario').value;
+                const fecha = document.getElementById('Fecha').value;
+                if(!idVet || !fecha) return;
 
-                } catch (err) {
-                    console.error('Error listando citas:', err);
-                }
+                const horas = await fetch(`/Cita/HorariosDisponibles?idVeterinario=${idVet}&fecha=${fecha}`).then(r => r.json());
+                document.getElementById('Hora').innerHTML =
+                    horas.map(h => `<option value="${h}">${h}</option>`).join('');
             }
 
             // ===============================
-            // BOTONES EDITAR / ELIMINAR
+            // LISTAR CITAS
+            // ===============================
+            async function fetchList() {
+                const res = await fetch('/Cita/Listar');
+                const data = await res.json();
+
+                const tbody = document.querySelector('#tblCitas tbody');
+                tbody.innerHTML = '';
+                data.forEach(c => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${c.idCita}</td>
+                        <td>${c.clienteNombre || ''}</td>
+                        <td>${c.mascotaNombre}</td>
+                        <td>${c.servicioNombre}</td>
+                        <td>${c.veterinarioNombre}</td>
+                        <td>${c.fechaCita.split('T')[0]}</td>
+                        <td>${c.horaCita}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCita}">Editar</button>
+                            <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCita}">Eliminar</button>
+                        </td>
+                    </tr>`;
+                });
+                bindButtons();
+            }
+
+            // ===============================
+            // BOTONES EDIT / DELETE
             // ===============================
             function bindButtons() {
-
                 document.querySelectorAll('.btn-edit').forEach(btn => {
                     btn.addEventListener('click', async e => {
                         await cargarCombos();
                         const id = e.target.dataset.id;
                         const res = await fetch(`/Cita/Obtener?id=${id}`);
-                        if (res.ok) {
-                            const c = await res.json();
-                            document.getElementById('IdCita').value = c.idCita;
+                        const c = await res.json();
+
+                        document.getElementById('IdCita').value = c.idCita;
+                        document.getElementById('IdCliente').value = c.idCliente;
+                        const event = new Event('change');
+                        document.getElementById('IdCliente').dispatchEvent(event);
+                        setTimeout(() => {
                             document.getElementById('IdMascota').value = c.idMascota;
-                            document.getElementById('IdServicio').value = c.idServicio;
-                            document.getElementById('IdVeterinario').value = c.idVeterinario;
-                            document.getElementById('Fecha').value = c.fechaCita.split("T")[0];
+                        }, 100);
+
+                        document.getElementById('IdServicio').value = c.idServicio;
+                        document.getElementById('IdVeterinario').value = c.idVeterinario;
+                        document.getElementById('Fecha').value = c.fechaCita.split("T")[0];
+                        cargarHorasDisponibles().then(() => {
                             document.getElementById('Hora').value = c.horaCita;
-                            bsModal.show();
-                        }
+                        });
+
+                        bsModal.show();
                     });
                 });
 
@@ -163,12 +208,12 @@
                         if (!confirm("¿Eliminar cita?")) return;
                         const id = parseInt(e.target.dataset.id);
                         const res = await fetch('/Cita/Eliminar', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(id)
+                            method:'POST',
+                            headers:{'Content-Type':'application/json'},
+                            body:JSON.stringify(id)
                         });
                         const json = await res.json();
-                        if (json.success) fetchList();
+                        if(json.success) fetchList();
                         else alert("Error al eliminar");
                     });
                 });
@@ -181,16 +226,17 @@
                 await cargarCombos();
                 document.getElementById('IdCita').value = 0;
                 document.getElementById('Fecha').value = '';
-                document.getElementById('Hora').value = '';
+                document.getElementById('Hora').innerHTML = '';
                 bsModal.show();
             });
 
             // ===============================
-            // GUARDAR
+            // GUARDAR CITA
             // ===============================
             document.getElementById('btnGuardar').addEventListener('click', async () => {
                 const cita = {
                     IdCita: parseInt(document.getElementById('IdCita').value || 0),
+                    IdCliente: parseInt(document.getElementById('IdCliente').value),
                     IdMascota: parseInt(document.getElementById('IdMascota').value),
                     IdServicio: parseInt(document.getElementById('IdServicio').value),
                     IdVeterinario: parseInt(document.getElementById('IdVeterinario').value),
@@ -199,13 +245,13 @@
                 };
 
                 const res = await fetch('/Cita/Guardar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cita)
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify(cita)
                 });
 
                 const json = await res.json();
-                if (json.success) {
+                if(json.success) {
                     bsModal.hide();
                     fetchList();
                 } else {

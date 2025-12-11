@@ -13,6 +13,9 @@ namespace ClinicaVeterinaria.Data
             _factory = factory;
         }
 
+        // ========================================
+        // INSERTAR
+        // ========================================
         public int Insertar(Veterinario v)
         {
             using var con = _factory.CreateConnection();
@@ -23,12 +26,23 @@ namespace ClinicaVeterinaria.Data
             cmd.Parameters.AddWithValue("@especialidad", v.Especialidad);
             cmd.Parameters.AddWithValue("@estado", v.Estado);
 
-            con.Open();
+            cmd.Parameters.AddWithValue("@nombres", v.Nombres);
+            cmd.Parameters.AddWithValue("@apellidoPaterno", v.ApellidoPaterno);
+            cmd.Parameters.AddWithValue("@apellidoMaterno", v.ApellidoMaterno);
 
+            cmd.Parameters.AddWithValue("@tipoDocumento", v.TipoDocumento);
+            cmd.Parameters.AddWithValue("@numeroDocumento", v.NumeroDocumento);
+            cmd.Parameters.AddWithValue("@celular", v.Celular);
+            cmd.Parameters.AddWithValue("@direccion", v.Direccion);
+
+            con.Open();
             var result = cmd.ExecuteScalar();
             return result == null ? 0 : Convert.ToInt32(result);
         }
 
+        // ========================================
+        // ACTUALIZAR
+        // ========================================
         public int Actualizar(Veterinario v)
         {
             using var con = _factory.CreateConnection();
@@ -40,6 +54,15 @@ namespace ClinicaVeterinaria.Data
             cmd.Parameters.AddWithValue("@especialidad", v.Especialidad);
             cmd.Parameters.AddWithValue("@estado", v.Estado);
 
+            cmd.Parameters.AddWithValue("@nombres", v.Nombres);
+            cmd.Parameters.AddWithValue("@apellidoPaterno", v.ApellidoPaterno);
+            cmd.Parameters.AddWithValue("@apellidoMaterno", v.ApellidoMaterno);
+
+            cmd.Parameters.AddWithValue("@tipoDocumento", v.TipoDocumento);
+            cmd.Parameters.AddWithValue("@numeroDocumento", v.NumeroDocumento);
+            cmd.Parameters.AddWithValue("@celular", v.Celular);
+            cmd.Parameters.AddWithValue("@direccion", v.Direccion);
+
             con.Open();
 
             using var dr = cmd.ExecuteReader();
@@ -47,6 +70,9 @@ namespace ClinicaVeterinaria.Data
             return 0;
         }
 
+        // ========================================
+        // ELIMINAR
+        // ========================================
         public int Eliminar(int idVeterinario)
         {
             using var con = _factory.CreateConnection();
@@ -62,6 +88,9 @@ namespace ClinicaVeterinaria.Data
             return 0;
         }
 
+        // ========================================
+        // OBTENER POR ID
+        // ========================================
         public Veterinario ObtenerPorId(int idVeterinario)
         {
             using var con = _factory.CreateConnection();
@@ -71,6 +100,7 @@ namespace ClinicaVeterinaria.Data
             cmd.Parameters.AddWithValue("@idVeterinario", idVeterinario);
 
             con.Open();
+
             using var dr = cmd.ExecuteReader();
             if (!dr.Read()) return null;
 
@@ -79,10 +109,22 @@ namespace ClinicaVeterinaria.Data
                 IdVeterinario = Convert.ToInt32(dr["idVeterinario"]),
                 IdUsuario = Convert.ToInt32(dr["idUsuario"]),
                 Especialidad = dr["especialidad"].ToString(),
-                Estado = Convert.ToBoolean(dr["estado"])
+                Estado = Convert.ToBoolean(dr["estado"]),
+
+                Nombres = dr["nombres"].ToString(),
+                ApellidoPaterno = dr["apellidoPaterno"].ToString(),
+                ApellidoMaterno = dr["apellidoMaterno"].ToString(),
+
+                TipoDocumento = dr["tipoDocumento"].ToString(),
+                NumeroDocumento = dr["numeroDocumento"].ToString(),
+                Celular = dr["celular"].ToString(),
+                Direccion = dr["direccion"].ToString()
             };
         }
 
+        // ========================================
+        // LISTAR TODOS
+        // ========================================
         public List<Veterinario> ListarTodos()
         {
             var lista = new List<Veterinario>();
@@ -92,7 +134,9 @@ namespace ClinicaVeterinaria.Data
             cmd.CommandType = CommandType.StoredProcedure;
 
             con.Open();
+
             using var dr = cmd.ExecuteReader();
+
             while (dr.Read())
             {
                 lista.Add(new Veterinario
@@ -100,7 +144,16 @@ namespace ClinicaVeterinaria.Data
                     IdVeterinario = Convert.ToInt32(dr["idVeterinario"]),
                     IdUsuario = Convert.ToInt32(dr["idUsuario"]),
                     Especialidad = dr["especialidad"].ToString(),
-                    Estado = Convert.ToBoolean(dr["estado"])
+                    Estado = Convert.ToBoolean(dr["estado"]),
+
+                    Nombres = dr["nombres"].ToString(),
+                    ApellidoPaterno = dr["apellidoPaterno"].ToString(),
+                    ApellidoMaterno = dr["apellidoMaterno"].ToString(),
+
+                    TipoDocumento = dr["tipoDocumento"].ToString(),
+                    NumeroDocumento = dr["numeroDocumento"].ToString(),
+                    Celular = dr["celular"].ToString(),
+                    Direccion = dr["direccion"].ToString()
                 });
             }
 

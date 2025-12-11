@@ -14,8 +14,8 @@
             <th>Especie</th>
             <th>Nombre</th>
             <th>Raza</th>
-            <th>Edad</th>
-            <th>Peso</th>
+            <th>Edad(Años)</th>
+            <th>Peso(Kg)</th>
             <th>Sexo</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -59,12 +59,12 @@
                 </div>
 
                 <div class="mb-3">
-                    <label>Edad</label>
+                    <label>Edad(Años)</label>
                     <input type="number" id="Edad" class="form-control" />
                 </div>
 
                 <div class="mb-3">
-                    <label>Peso</label>
+                    <label>Peso(kg)</label>
                     <input type="number" step="0.01" id="Peso" class="form-control" />
                 </div>
 
@@ -123,8 +123,8 @@
                     tbody.innerHTML += `
                         <tr>
                             <td>${m.idMascota}</td>
-                            <td>${m.idCliente}</td>
-                            <td>${m.idEspecie}</td>
+                            <td>${m.nombreCliente}</td> 
+                            <td>${m.nombreEspecie}</td> 
                             <td>${m.nombre}</td>
                             <td>${m.raza}</td>
                             <td>${m.edad ?? ''}</td>

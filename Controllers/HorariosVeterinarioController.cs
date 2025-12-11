@@ -61,5 +61,13 @@ namespace ClinicaVeterinaria.Controllers
             var rows = _repo.Eliminar(id);
             return Ok(new { success = rows > 0, rowsAffected = rows });
         }
+
+        [HttpGet]
+        public IActionResult ListarVeterinarios()
+        {
+            var lista = _repo.ListarVeterinarios();
+            return Json(lista);
+        }
+
     }
 }

@@ -142,5 +142,56 @@ namespace ClinicaVeterinaria.Data
 
             return 0;
         }
+
+        public List<string> HorariosDisponibles(int idVeterinario, DateTime fecha)
+        {
+            var lista = new List<string>();
+            using var con = _factory.CreateConnection();
+
+            // Obtenemos horario del veterinario
+            using var cmd = new SqlCommand(@"
+        SELECT horaInicio, horaFin
+        FROM HorariosVeterinarios
+        WHERE idVeterinario = @idVet AND diaSemana = @dia
+    ", con);
+
+            cmd.Parameters.AddWithValue("@idVet", idVeterinario);
+            cmd.Parameters.AddWithValue("@dia", fecha.DayOfWeek.ToString());
+
+            con.Open();
+            using var dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                var inicio = (TimeSpan)dr["horaInicio"];
+                var fin = (TimeSpan)dr["horaFin"];
+
+                // Obtenemos horas ya reservadas
+                var ocupadasCmd = new SqlCommand(@"
+            SELECT horaCita
+            FROM Citas
+            WHERE idVeterinario = @idVet AND fechaCita = @fecha
+        ", con);
+                ocupadasCmd.Parameters.AddWithValue("@idVet", idVeterinario);
+                ocupadasCmd.Parameters.AddWithValue("@fecha", fecha);
+
+                var ocupadas = new List<TimeSpan>();
+                using var dr2 = ocupadasCmd.ExecuteReader();
+                while (dr2.Read())
+                    ocupadas.Add((TimeSpan)dr2["horaCita"]);
+
+                // Generamos horarios disponibles cada hora
+                for (var h = inicio.Hours; h < fin.Hours; h++)
+                {
+                    var hora = new TimeSpan(h, 0, 0);
+                    if (!ocupadas.Contains(hora))
+                        lista.Add(hora.ToString(@"hh\:mm"));
+                }
+            }
+
+            return lista;
+        }
+
+
+
     }
 }

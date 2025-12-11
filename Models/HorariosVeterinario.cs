@@ -4,6 +4,7 @@
     {
         public int IdHorario { get; set; }
         public int IdVeterinario { get; set; }
+        public string? NombreVeterinario { get; set; }   
         public string? DiaSemana { get; set; }
         public int HoraInicio { get; set; }
         public int HoraFin { get; set; }

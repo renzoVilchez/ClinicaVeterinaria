@@ -16,7 +16,7 @@ namespace ClinicaVeterinaria.Data
         public int Insertar(HorariosVeterinario h)
         {
             using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand("sp_InsertarHorariosVeterinario", con);
+            using var cmd = new SqlCommand("sp_InsertarHorarioVeterinario", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@idVeterinario", h.IdVeterinario);
@@ -35,7 +35,7 @@ namespace ClinicaVeterinaria.Data
         public int Actualizar(HorariosVeterinario h)
         {
             using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand("sp_ActualizarHorariosVeterinario", con);
+            using var cmd = new SqlCommand("sp_ActualizarHorarioVeterinario", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@idHorario", h.IdHorario);
@@ -56,7 +56,7 @@ namespace ClinicaVeterinaria.Data
         public int Eliminar(int idHorariosVeterinario)
         {
             using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand("sp_EliminarHorariosVeterinario", con);
+            using var cmd = new SqlCommand("sp_EliminarHorarioVeterinario", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@idHorario", idHorariosVeterinario);
@@ -71,7 +71,7 @@ namespace ClinicaVeterinaria.Data
         public HorariosVeterinario ObtenerPorId(int idHorariosVeterinario)
         {
             using var con = _factory.CreateConnection();
-            using var cmd = new SqlCommand("sp_ObtenerHorariosVeterinarioPorId", con);
+            using var cmd = new SqlCommand("sp_ObtenerHorarioVeterinarioPorId", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Parameters.AddWithValue("@idHorario", idHorariosVeterinario);
@@ -107,6 +107,7 @@ namespace ClinicaVeterinaria.Data
                 {
                     IdHorario = Convert.ToInt32(dr["idHorario"]),
                     IdVeterinario = Convert.ToInt32(dr["idVeterinario"]),
+                    NombreVeterinario = dr["nombreVeterinario"].ToString(),
                     DiaSemana = dr["diaSemana"] == DBNull.Value ? null : dr["diaSemana"].ToString(),
                     HoraInicio = Convert.ToInt32(dr["horaInicio"]),
                     HoraFin = Convert.ToInt32(dr["horaFin"]),
@@ -116,5 +117,29 @@ namespace ClinicaVeterinaria.Data
 
             return lista;
         }
+        public List<Veterinario> ListarVeterinarios()
+        {
+            var lista = new List<Veterinario>();
+
+            using var con = _factory.CreateConnection();
+            using var cmd = new SqlCommand("sp_ListarVeterinarios", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            con.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                lista.Add(new Veterinario
+                {
+                    IdVeterinario = Convert.ToInt32(dr["idVeterinario"]),
+                    Nombres = dr["Nombres"].ToString(),
+                    ApellidoPaterno = dr["ApellidoPaterno"].ToString(),
+                    ApellidoMaterno = dr["ApellidoMaterno"].ToString()
+                });
+            }
+
+            return lista;
+        }
+
     }
 }

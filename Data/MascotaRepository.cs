@@ -35,7 +35,9 @@ namespace ClinicaVeterinaria.Data
                     Edad = dr["edad"] != DBNull.Value ? (int?)Convert.ToInt32(dr["edad"]) : null,
                     Peso = dr["peso"] != DBNull.Value ? (decimal?)Convert.ToDecimal(dr["peso"]) : null,
                     Sexo = dr["sexo"].ToString(),
-                    Estado = dr["estado"] != DBNull.Value && Convert.ToBoolean(dr["estado"])
+                    Estado = dr["estado"] != DBNull.Value && Convert.ToBoolean(dr["estado"]),
+                    NombreCliente = dr["nombreCliente"].ToString(),  
+                    NombreEspecie = dr["nombreEspecie"].ToString()
                 });
             }
 

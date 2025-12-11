@@ -11,5 +11,9 @@
         public decimal? Peso { get; set; }
         public string? Sexo { get; set; }
         public bool Estado { get; set; }
+
+        public string? NombreCliente { get; set; }
+        public string? NombreEspecie { get; set; }
+
     }
 }

@@ -43,6 +43,13 @@ CREATE TABLE Veterinarios (
     idUsuario INT NOT NULL,
     especialidad NVARCHAR(100),
     estado BIT DEFAULT 1,
+	nombres NVARCHAR(100),
+    apellidoPaterno NVARCHAR(100),
+    apellidoMaterno NVARCHAR(100),
+    tipoDocumento NVARCHAR(20),
+    numeroDocumento NVARCHAR(20),
+    celular NVARCHAR(20),
+    direccion NVARCHAR(150),
     CONSTRAINT FK_Veterinarios_Usuarios
         FOREIGN KEY (idUsuario) REFERENCES Usuarios(idUsuario)
         ON DELETE CASCADE

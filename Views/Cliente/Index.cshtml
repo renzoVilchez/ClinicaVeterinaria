@@ -4,17 +4,14 @@
 
 <h2>Clientes</h2>
 
-<button id="btnNuevo" class="btn btn-primary mb-2">Nuevo cliente</button>
+<button id="btnNuevo" class="btn btn-primary mb-2">Registrar Cliente Completo</button>
 
 <table class="table table-striped" id="tblClientes">
     <thead>
         <tr>
             <th>ID</th>
-            <th>ID Usuario</th>
-            <th>Nombres</th>
-            <th>Apellido Paterno</th>
-            <th>Apellido Materno</th>
-            <th>Tipo Doc</th>
+            <th>Nombre Completo</th>
+            <th>Documento</th>
             <th>N° Documento</th>
             <th>Celular</th>
             <th>Dirección</th>
@@ -25,75 +22,83 @@
     <tbody></tbody>
 </table>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">Cliente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="modalTitle">Registrar Cliente</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-
                 <input type="hidden" id="IdCliente" />
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label>ID Usuario</label>
-                        <input id="IdUsuario" class="form-control" />
+                <!-- SECCION USUARIO (solo para crear) -->
+                <div id="usuarioSection">
+                    <h5 class="text-primary">Datos de Usuario</h5>
+                    <div class="mb-3">
+                        <label>Nombre de Usuario</label>
+                        <input type="text" id="NombreUsuario" class="form-control" />
                     </div>
+                    <div class="mb-3">
+                        <label>Contraseña</label>
+                        <input type="password" id="Contrasena" class="form-control" />
+                    </div>
+                    <hr />
+                </div>
 
-                    <div class="col-md-4 mb-3">
+                <!-- DATOS DEL CLIENTE -->
+                <h5 class="text-primary">Datos del Cliente</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
                         <label>Nombres</label>
-                        <input id="Nombres" class="form-control" />
+                        <input type="text" id="Nombres" class="form-control" />
                     </div>
-
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
                         <label>Apellido Paterno</label>
-                        <input id="ApellidoPaterno" class="form-control" />
+                        <input type="text" id="ApellidoPaterno" class="form-control" />
                     </div>
-
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
                         <label>Apellido Materno</label>
-                        <input id="ApellidoMaterno" class="form-control" />
+                        <input type="text" id="ApellidoMaterno" class="form-control" />
                     </div>
+                </div>
 
-                    <div class="col-md-4 mb-3">
-                        <label>Tipo de Documento</label>
-                        <select id="TipoDocumento" class="form-control">
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <label>Tipo Documento</label>
+                        <select id="TipoDocumento" class="form-select">
                             <option value="DNI">DNI</option>
                             <option value="Carnet de Extranjería">Carnet de Extranjería</option>
                         </select>
                     </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label>Número de Documento</label>
-                        <input id="NumeroDocumento" class="form-control" />
+                    <div class="col-md-4">
+                        <label>N° Documento</label>
+                        <input type="text" id="NumeroDocumento" class="form-control" />
                     </div>
-
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-4">
                         <label>Celular</label>
-                        <input id="Celular" class="form-control" />
+                        <input type="text" id="Celular" class="form-control" />
                     </div>
+                </div>
 
-                    <div class="col-md-8 mb-3">
-                        <label>Dirección</label>
-                        <input id="Direccion" class="form-control" />
-                    </div>
+                <div class="mt-3">
+                    <label>Dirección</label>
+                    <input type="text" id="Direccion" class="form-control" />
+                </div>
 
-                    <div class="col-md-12 mb-3 form-check">
-                        <input type="checkbox" id="Estado" class="form-check-input" />
-                        <label class="form-check-label">Activo</label>
-                    </div>
+                <div class="mt-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="Estado" checked />
+                    <label class="form-check-label">Activo</label>
                 </div>
 
             </div>
 
             <div class="modal-footer">
                 <button id="btnGuardar" class="btn btn-primary">Guardar</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
 
         </div>
@@ -102,152 +107,182 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-            const modalEl = document.getElementById('clienteModal');
-            const bsModal = new bootstrap.Modal(modalEl);
+            const modal = new bootstrap.Modal(document.getElementById("clienteModal"));
+            const usuarioSection = document.getElementById("usuarioSection");
 
-            // ===========================
+            // ======================
             // LISTAR CLIENTES
-            // ===========================
-            function fetchList() {
-                fetch('/Cliente/Listar')
-                    .then(r => r.json())
-                    .then(data => {
-                        const tbody = document.querySelector('#tblClientes tbody');
-                        tbody.innerHTML = '';
+            // ======================
+            async function fetchList() {
+                const data = await fetch('/Cliente/Listar').then(r => r.json());
+                const tbody = document.querySelector('#tblClientes tbody');
+                tbody.innerHTML = "";
 
-                        data.forEach(c => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${c.idCliente}</td>
-                                    <td>${c.idUsuario}</td>
-                                    <td>${c.nombres}</td>
-                                    <td>${c.apellidoPaterno}</td>
-                                    <td>${c.apellidoMaterno}</td>
-                                    <td>${c.tipoDocumento}</td>
-                                    <td>${c.numeroDocumento}</td>
-                                    <td>${c.celular}</td>
-                                    <td>${c.direccion}</td>
-                                    <td>${c.estado ? 'Activo' : 'Inactivo'}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCliente}">Editar</button>
-                                        <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCliente}">Eliminar</button>
-                                    </td>
-                                </tr>`;
-                        });
+                data.forEach(c => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.idCliente}</td>
+                            <td>${c.nombres} ${c.apellidoPaterno} ${c.apellidoMaterno}</td>
+                            <td>${c.tipoDocumento}</td>
+                            <td>${c.numeroDocumento}</td>
+                            <td>${c.celular ?? ''}</td>
+                            <td>${c.direccion ?? ''}</td>
+                            <td>${c.estado ? 'Activo' : 'Inactivo'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCliente}">Editar</button>
+                                <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCliente}">Eliminar</button>
+                            </td>
+                        </tr>`;
+                });
 
-                        bindButtons();
-                    });
+                bindButtons();
             }
 
-            // ===========================
-            // BOTONES EDITAR / ELIMINAR
-            // ===========================
+            // ======================
+            // BIND BOTONES
+            // ======================
             function bindButtons() {
 
-                // EDITAR
-                document.querySelectorAll('.btn-edit').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
+                // EDITAR CLIENTE
+                document.querySelectorAll(".btn-edit").forEach(btn => {
+                    btn.addEventListener("click", async () => {
+                        const id = btn.dataset.id;
+                        const c = await fetch(`/Cliente/Obtener?id=${id}`).then(r => r.json());
 
-                        const id = e.target.dataset.id;
-                        const res = await fetch(`/Cliente/Obtener?id=${id}`);
+                        usuarioSection.style.display = "none"; // no editar usuario
+                        document.getElementById("modalTitle").innerText = "Editar Cliente";
 
-                        if (res.ok) {
-                            const c = await res.json();
+                        document.getElementById("IdCliente").value = c.idCliente;
+                        document.getElementById("Nombres").value = c.nombres;
+                        document.getElementById("ApellidoPaterno").value = c.apellidoPaterno;
+                        document.getElementById("ApellidoMaterno").value = c.apellidoMaterno;
+                        document.getElementById("TipoDocumento").value = c.tipoDocumento;
+                        document.getElementById("NumeroDocumento").value = c.numeroDocumento;
+                        document.getElementById("Celular").value = c.celular;
+                        document.getElementById("Direccion").value = c.direccion;
+                        document.getElementById("Estado").checked = c.estado;
 
-                            document.getElementById('IdCliente').value = c.idCliente;
-                            document.getElementById('IdUsuario').value = c.idUsuario;
-                            document.getElementById('Nombres').value = c.nombres;
-                            document.getElementById('ApellidoPaterno').value = c.apellidoPaterno;
-                            document.getElementById('ApellidoMaterno').value = c.apellidoMaterno;
-                            document.getElementById('TipoDocumento').value = c.tipoDocumento;
-                            document.getElementById('NumeroDocumento').value = c.numeroDocumento;
-                            document.getElementById('Celular').value = c.celular;
-                            document.getElementById('Direccion').value = c.direccion;
-                            document.getElementById('Estado').checked = c.estado;
-
-                            bsModal.show();
-                        }
+                        modal.show();
                     });
                 });
 
-                // ELIMINAR
-                document.querySelectorAll('.btn-delete').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-
-                        if (!confirm('¿Eliminar cliente?')) return;
-
-                        const id = parseInt(e.target.dataset.id);
-
+                // ELIMINAR CLIENTE
+                document.querySelectorAll(".btn-delete").forEach(btn => {
+                    btn.addEventListener("click", async () => {
+                        if (!confirm("¿Eliminar cliente?")) return;
                         const res = await fetch('/Cliente/Eliminar', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(id)
-                        });
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(parseInt(btn.dataset.id))
+                        }).then(r => r.json());
 
-                        const json = await res.json();
-                        if (json.success) fetchList();
-                        else alert("No se pudo eliminar");
+                        if (res.success) fetchList();
+                        else alert("Error al eliminar");
                     });
                 });
             }
 
-            // ===========================
+            // ======================
             // NUEVO CLIENTE
-            // ===========================
-            document.getElementById('btnNuevo').addEventListener('click', () => {
+            // ======================
+            document.getElementById("btnNuevo").addEventListener("click", () => {
+                usuarioSection.style.display = "block";
+                document.getElementById("modalTitle").innerText = "Registrar Cliente";
 
-                document.getElementById('IdCliente').value = 0;
-                document.getElementById('IdUsuario').value = '';
-                document.getElementById('Nombres').value = '';
-                document.getElementById('ApellidoPaterno').value = '';
-                document.getElementById('ApellidoMaterno').value = '';
-                document.getElementById('TipoDocumento').value = 'DNI';
-                document.getElementById('NumeroDocumento').value = '';
-                document.getElementById('Celular').value = '';
-                document.getElementById('Direccion').value = '';
-                document.getElementById('Estado').checked = true;
+                // limpiar campos
+                document.querySelectorAll("#clienteModal input").forEach(i => i.value = "");
+                document.getElementById("Estado").checked = true;
+                document.getElementById("IdCliente").value = 0;
 
-                bsModal.show();
+                modal.show();
             });
 
-            // ===========================
-            // GUARDAR
-            // ===========================
-            document.getElementById('btnGuardar').addEventListener('click', async () => {
+            // ======================
+            // GUARDAR CLIENTE (CREAR / EDITAR)
+            // ======================
+            document.getElementById("btnGuardar").addEventListener("click", async () => {
 
-                const cliente = {
-                    IdCliente: parseInt(document.getElementById('IdCliente').value || 0),
-                    IdUsuario: parseInt(document.getElementById('IdUsuario').value || 0),
-                    Nombres: document.getElementById('Nombres').value,
-                    ApellidoPaterno: document.getElementById('ApellidoPaterno').value,
-                    ApellidoMaterno: document.getElementById('ApellidoMaterno').value,
-                    TipoDocumento: document.getElementById('TipoDocumento').value,
-                    NumeroDocumento: document.getElementById('NumeroDocumento').value,
-                    Celular: document.getElementById('Celular').value,
-                    Direccion: document.getElementById('Direccion').value,
-                    Estado: document.getElementById('Estado').checked
-                };
+                const idCliente = parseInt(document.getElementById("IdCliente").value);
 
-                const res = await fetch('/Cliente/Guardar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cliente)
-                });
+                // Validaciones básicas
+                const nombres = document.getElementById("Nombres").value.trim();
+                const apellidoPaterno = document.getElementById("ApellidoPaterno").value.trim();
+                const numeroDocumento = document.getElementById("NumeroDocumento").value.trim();
 
-                const json = await res.json();
-
-                if (json.success) {
-                    bsModal.hide();
-                    fetchList();
+                if (!nombres || !apellidoPaterno || !numeroDocumento) {
+                    alert("Complete los campos obligatorios (Nombres, Apellido Paterno y N° Documento)");
+                    return;
                 }
-                else {
-                    alert("Error al guardar");
+
+                let body;
+
+                if (idCliente === 0) {
+                    // CREAR CLIENTE COMPLETO
+                    const contrasena = document.getElementById("Contrasena").value.trim();
+                    if (!contrasena) {
+                        alert("Ingrese la contraseña del usuario");
+                        return;
+                    }
+
+                    const nombreUsuario = document.getElementById("NombreUsuario").value.trim();
+                    if (!nombreUsuario) {
+                        alert("Ingrese el nombre de usuario");
+                        return;
+                    }
+
+                    body = {
+                        NombreUsuario: nombreUsuario,
+                        Contrasena: contrasena,
+                        Nombres: nombres,
+                        ApellidoPaterno: apellidoPaterno,
+                        ApellidoMaterno: document.getElementById("ApellidoMaterno").value,
+                        TipoDocumento: document.getElementById("TipoDocumento").value,
+                        NumeroDocumento: numeroDocumento,
+                        Celular: document.getElementById("Celular").value,
+                        Direccion: document.getElementById("Direccion").value,
+                        Estado: document.getElementById("Estado").checked
+                    };
+
+                    const res = await fetch('/Cliente/RegistrarCompleto', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body)
+                    }).then(r => r.json());
+
+                    if (res.success) {
+                        modal.hide();
+                        fetchList();
+                    } else alert("Error al registrar");
+                } else {
+                    // EDITAR CLIENTE
+                    body = {
+                        IdCliente: idCliente,
+                        Nombres: nombres,
+                        ApellidoPaterno: apellidoPaterno,
+                        ApellidoMaterno: document.getElementById("ApellidoMaterno").value,
+                        TipoDocumento: document.getElementById("TipoDocumento").value,
+                        NumeroDocumento: numeroDocumento,
+                        Celular: document.getElementById("Celular").value,
+                        Direccion: document.getElementById("Direccion").value,
+                        Estado: document.getElementById("Estado").checked
+                    };
+
+                    const res = await fetch('/Cliente/Guardar', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body)
+                    }).then(r => r.json());
+
+                    if (res.success) {
+                        modal.hide();
+                        fetchList();
+                    } else alert("Error al actualizar");
                 }
             });
 
-            // CARGA INICIAL
+            // Inicializar lista
             fetchList();
         });
     </script>

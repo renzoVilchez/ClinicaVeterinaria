@@ -13,13 +13,11 @@ namespace ClinicaVeterinaria.Controllers
             _repo = repo;
         }
 
-        // Página principal (muestra la tabla y modal)
         public IActionResult Index()
         {
             return View();
         }
 
-        // Listar (JSON)
         [HttpGet]
         public IActionResult Listar()
         {
@@ -27,39 +25,58 @@ namespace ClinicaVeterinaria.Controllers
             return Json(lista);
         }
 
-        // Obtener por id (JSON)
         [HttpGet]
         public IActionResult Obtener(int id)
         {
-            var u = _repo.ObtenerPorId(id);
-            if (u == null) return NotFound();
-            return Json(u);
+            var c = _repo.ObtenerPorId(id);
+            if (c == null) return NotFound();
+            return Json(c);
         }
 
-        // Guardar (Insertar o Actualizar) - recibe JSON
         [HttpPost]
-        public IActionResult Guardar([FromBody] Cliente Cliente)
+        public IActionResult Guardar([FromBody] Cliente c)
         {
-            if (Cliente == null) return BadRequest();
+            if (c == null) return BadRequest();
 
-            if (Cliente.IdCliente == 0)
+            if (c.IdCliente == 0)
             {
-                var newId = _repo.Insertar(Cliente);
+                // Inserción normal
+                var newId = _repo.Insertar(c);
                 return Ok(new { success = true, id = newId });
             }
             else
             {
-                var rows = _repo.Actualizar(Cliente);
-                return Ok(new { success = rows > 0, rowsAffected = rows });
+                // 🔥 Traemos el cliente original para no perder su IdUsuario
+                var original = _repo.ObtenerPorId(c.IdCliente);
+                if (original == null) return NotFound();
+
+                // 🔥 Mantener el IdUsuario original
+                c.IdUsuario = original.IdUsuario;
+
+                var rows = _repo.Actualizar(c);
+                return Ok(new { success = rows > 0 });
             }
         }
 
-        // Eliminar
+
         [HttpPost]
         public IActionResult Eliminar([FromBody] int id)
         {
-            var rows = _repo.Eliminar(id);
-            return Ok(new { success = rows > 0, rowsAffected = rows });
+            var rows = _repo.EliminarConUsuario(id);
+            return Ok(new { success = rows > 0 });
         }
+
+        [HttpPost]
+        public IActionResult RegistrarCompleto([FromBody] ClienteCompleto model)
+        {
+            var idUsuario = _repo.RegistrarClienteCompleto(model);
+            return Ok(new { success = idUsuario > 0, idUsuario });
+        }
+
+        public IActionResult RegistrarCompletoView()
+        {
+            return View("RegistrarCompleto");
+        }
+
     }
 }

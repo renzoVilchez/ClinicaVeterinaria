@@ -129,5 +129,73 @@ namespace ClinicaVeterinaria.Data
 
             return lista;
         }
+
+        public int RegistrarClienteCompleto(ClienteCompleto model)
+        {
+            using var con = _factory.CreateConnection();
+            using var cmd = new SqlCommand("sp_RegistrarClienteCompleto", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@nombreUsuario", model.NombreUsuario);
+            cmd.Parameters.AddWithValue("@contrasena", model.Contrasena);
+            cmd.Parameters.AddWithValue("@nombres", model.Nombres);
+            cmd.Parameters.AddWithValue("@apellidoPaterno", model.ApellidoPaterno);
+            cmd.Parameters.AddWithValue("@apellidoMaterno", model.ApellidoMaterno);
+            cmd.Parameters.AddWithValue("@tipoDocumento", model.TipoDocumento);
+            cmd.Parameters.AddWithValue("@numeroDocumento", model.NumeroDocumento);
+            cmd.Parameters.AddWithValue("@celular", (object?)model.Celular ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@direccion", (object?)model.Direccion ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@estado", model.Estado);
+
+            con.Open();
+            var result = cmd.ExecuteScalar();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        private int ObtenerIdUsuarioPorCliente(int idCliente)
+        {
+            using var con = _factory.CreateConnection();
+            using var cmd = new SqlCommand(
+                "SELECT idUsuario FROM Clientes WHERE IdCliente = @id", con);
+
+            cmd.Parameters.AddWithValue("@id", idCliente);
+
+            con.Open();
+            var result = cmd.ExecuteScalar();
+
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+
+        private int EliminarUsuario(int idUsuario)
+        {
+            using var con = _factory.CreateConnection();
+            using var cmd = new SqlCommand(
+                "DELETE FROM Usuarios WHERE IdUsuario = @id", con);
+
+            cmd.Parameters.AddWithValue("@id", idUsuario);
+
+            con.Open();
+            return cmd.ExecuteNonQuery(); // devuelve filas afectadas
+        }
+
+
+        public int EliminarConUsuario(int idCliente)
+        {
+            // 1. Obtener idUsuario del cliente
+            int idUsuario = ObtenerIdUsuarioPorCliente(idCliente);
+
+            // 2. Eliminar cliente (usa tu SP existente)
+            int filasCliente = Eliminar(idCliente);
+
+            // 3. Eliminar usuario si existe
+            if (idUsuario > 0)
+                EliminarUsuario(idUsuario);
+
+            return filasCliente;
+        }
+
+
+
     }
 }

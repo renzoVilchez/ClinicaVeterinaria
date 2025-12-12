@@ -33,6 +33,13 @@ namespace ClinicaVeterinaria.Controllers
             return Json(m);
         }
 
+        [HttpGet]
+        public JsonResult ListarPorCliente(int idCliente)
+        {
+            var data = _repo.ListarPorCliente(idCliente);
+            return Json(data);
+        }
+
         [HttpPost]
         public IActionResult Guardar([FromBody] Mascota mascota)
         {

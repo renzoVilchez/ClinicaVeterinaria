@@ -124,5 +124,28 @@ namespace ClinicaVeterinaria.Data
             if (dr.Read()) return Convert.ToInt32(dr["RowsAffected"]);
             return 0;
         }
+        public List<Mascota> ListarPorCliente(int idCliente)
+        {
+            var lista = new List<Mascota>();
+
+            using var con = _factory.CreateConnection();
+            using var cmd = new SqlCommand("sp_ListarMascotasPorCliente", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@idCliente", idCliente);
+
+            con.Open();
+            using var dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(new Mascota
+                {
+                    IdMascota = Convert.ToInt32(dr["idMascota"]),
+                    Nombre = dr["nombre"].ToString()!
+                });
+            }
+
+            return lista;
+        }
     }
 }

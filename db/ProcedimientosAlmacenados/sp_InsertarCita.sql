@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_InsertarCita
+ALTER PROCEDURE sp_InsertarCita
     @idMascota INT,
     @idServicio INT,
     @idVeterinario INT,
@@ -9,9 +9,15 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO Citas(idMascota, idServicio, idVeterinario, fechaCita, horaCita, estado)
-    VALUES(@idMascota, @idServicio, @idVeterinario, @fechaCita, @horaCita, @estado);
+    INSERT INTO Citas(
+        idMascota, idServicio, idVeterinario,
+        fechaCita, horaCita, estado, fechaRegistro
+    )
+    VALUES(
+        @idMascota, @idServicio, @idVeterinario,
+        @fechaCita, @horaCita, @estado, GETDATE()
+    );
 
-    SELECT CAST(SCOPE_IDENTITY() AS INT) AS NewId;
+    SELECT SCOPE_IDENTITY() AS idCitaCreada;
 END
 GO

@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_ActualizarCita
+ALTER PROCEDURE sp_ActualizarCita
     @idCita INT,
     @idMascota INT,
     @idServicio INT,

@@ -110,7 +110,7 @@
                     // Veterinarios
                     const vet = await fetch('/Veterinario/Listar').then(r => r.json());
                     document.getElementById('IdVeterinario').innerHTML =
-                        vet.map(v => `<option value="${v.idVeterinario}">${v.nombreUsuario}</option>`).join('');
+                                vet.map(v =>`<option value="${v.idVeterinario}">${v.nombres} ${v.apellidoPaterno}</option>`).join('');
 
                 } catch (err) {
                     console.error('Error cargando combos:', err);
@@ -148,30 +148,33 @@
             // ===============================
             // LISTAR CITAS
             // ===============================
-            async function fetchList() {
-                const res = await fetch('/Cita/Listar');
-                const data = await res.json();
+                    async function fetchList() {
+            const res = await fetch('/Cita/Listar');
+            const data = await res.json();
 
-                const tbody = document.querySelector('#tblCitas tbody');
-                tbody.innerHTML = '';
-                data.forEach(c => {
-                    tbody.innerHTML += `
-                    <tr>
-                        <td>${c.idCita}</td>
-                        <td>${c.clienteNombre || ''}</td>
-                        <td>${c.mascotaNombre}</td>
-                        <td>${c.servicioNombre}</td>
-                        <td>${c.veterinarioNombre}</td>
-                        <td>${c.fechaCita.split('T')[0]}</td>
-                        <td>${c.horaCita}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCita}">Editar</button>
-                            <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCita}">Eliminar</button>
-                        </td>
-                    </tr>`;
-                });
-                bindButtons();
-            }
+            const tbody = document.querySelector('#tblCitas tbody');
+            tbody.innerHTML = ''; // Limpieza total
+
+            data.forEach(c => {
+                const row = `
+                <tr>
+                    <td>${c.idCita}</td>
+                    <td>${c.clienteNombre}</td>
+                    <td>${c.mascotaNombre}</td>
+                    <td>${c.servicioNombre}</td>
+                    <td>${c.veterinarioNombre}</td>
+                    <td>${c.fechaCita.split('T')[0]}</td>
+                    <td>${c.horaCita}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary btn-edit" data-id="${c.idCita}">Editar</button>
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="${c.idCita}">Eliminar</button>
+                    </td>
+                </tr>`;
+                tbody.insertAdjacentHTML("beforeend", row);
+            });
+
+            bindButtons();
+        }
 
             // ===============================
             // BOTONES EDIT / DELETE
@@ -222,42 +225,54 @@
             // ===============================
             // NUEVA CITA
             // ===============================
-            document.getElementById('btnNuevo').addEventListener('click', async () => {
-                await cargarCombos();
-                document.getElementById('IdCita').value = 0;
-                document.getElementById('Fecha').value = '';
-                document.getElementById('Hora').innerHTML = '';
-                bsModal.show();
-            });
+                document.getElementById('btnNuevo').addEventListener('click', async () => {
+                    await cargarCombos();
+
+                    document.getElementById('IdCita').value = 0;
+
+                    // Tomar primer cliente automáticamente
+                    const idCliente = document.getElementById('IdCliente').value;
+
+                    // Disparar carga de mascotas automáticamente
+                    const evt = new Event('change');
+                    document.getElementById('IdCliente').dispatchEvent(evt);
+
+                    document.getElementById('Fecha').value = '';
+                    document.getElementById('Hora').innerHTML = '';
+
+                    bsModal.show();
+                });
+
 
             // ===============================
             // GUARDAR CITA
             // ===============================
-            document.getElementById('btnGuardar').addEventListener('click', async () => {
-                const cita = {
-                    IdCita: parseInt(document.getElementById('IdCita').value || 0),
-                    IdCliente: parseInt(document.getElementById('IdCliente').value),
-                    IdMascota: parseInt(document.getElementById('IdMascota').value),
-                    IdServicio: parseInt(document.getElementById('IdServicio').value),
-                    IdVeterinario: parseInt(document.getElementById('IdVeterinario').value),
-                    FechaCita: document.getElementById('Fecha').value,
-                    HoraCita: document.getElementById('Hora').value
-                };
+                    document.getElementById('btnGuardar').addEventListener('click', async () => {
+            const cita = {
+                IdCita: parseInt(document.getElementById('IdCita').value || 0),
+                IdCliente: parseInt(document.getElementById('IdCliente').value),
+                IdMascota: parseInt(document.getElementById('IdMascota').value),
+                IdServicio: parseInt(document.getElementById('IdServicio').value),
+                IdVeterinario: parseInt(document.getElementById('IdVeterinario').value),
+                FechaCita: document.getElementById('Fecha').value,
+                HoraCita: document.getElementById('Hora').value + ":00",
+                Estado: "Pendiente"
+            };
 
-                const res = await fetch('/Cita/Guardar', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify(cita)
-                });
-
-                const json = await res.json();
-                if(json.success) {
-                    bsModal.hide();
-                    fetchList();
-                } else {
-                    alert("Error al guardar");
-                }
+            const res = await fetch('/Cita/Guardar', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(cita)
             });
+
+            const json = await res.json();
+            if(json.success) {
+                bsModal.hide();
+                fetchList();
+            } else {
+                alert(json.message || "Error al guardar");
+            }
+        });
 
             // ===============================
             // CARGA INICIAL
